@@ -1,6 +1,14 @@
 import asynchandler from "../middleware/asyncHandler.js";
 import Product from "../models/productModel.js";
 
+/***************************************
+ * @desc Fetch all products
+ * @route GET /api/products
+ * @access Public
+ * @returns {object} - products
+ *
+***************************************/
+
 export const getProducts = asynchandler(async (req, res) => {
   const products = await Product.find({});
 
@@ -12,7 +20,16 @@ export const getProducts = asynchandler(async (req, res) => {
   res.status(200).json({ products });
 });
 
-export const getSingleProduct = asynchandler(async (req, res) => {
+/**
+ * @desc Fetch single product
+ * @route GET /api/products/:id
+ * @access Public
+ * @returns {object} - product
+ *
+ */
+
+
+export const getProductById = asynchandler(async (req, res) => {
   const product = await Product.findById(req.params.id);
 
   if (product) {
