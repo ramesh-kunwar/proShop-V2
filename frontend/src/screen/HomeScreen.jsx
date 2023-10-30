@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Container, Row, Col } from "react-bootstrap";
 // import products from "../products";
 import Product from "../components/Product";
-import { useGetProductsQuery } from "../../slices/productApiSlice";
+import { useGetProductsQuery } from "../slices/productApiSlice";
 import Loader from "../components/Loader";
 import Message from "../components/Message";
 const HomeScreen = () => {
