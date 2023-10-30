@@ -5,6 +5,7 @@ import express from "express";
 import CONFIG from "./config/index.js";
 import connectDB from "./db/db.js";
 import productRoutes from "./routes/productRoutes.js";
+import userRoutes from "./routes/userRoutes.js";
 import { errorHandler, notFound } from "./middleware/errorMiddleware.js";
 
 const app = express();
@@ -18,10 +19,10 @@ app.get("/", (req, res) => {
   res.send("Server is ready..");
 });
 
-
 app.use("/api/products", productRoutes);
+app.use("/api/users", userRoutes);
 
-app.use(notFound)
+app.use(notFound);
 app.use(errorHandler);
 
 app.listen(CONFIG.PORT, () => {
