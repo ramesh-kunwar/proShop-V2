@@ -89,7 +89,13 @@ export const logoutUser = asynchandler(async (req, res) => {
  ***************************************/
 
 export const getUserProfile = asynchandler(async (req, res) => {
-  res.status(200).json({ msg: "Get user profile" });
+  const user = await User.findById(req.user._id).select("-password");
+  if (user) {
+    res.status(200).json(user);
+  } else {
+    res.status(404);
+    throw new Error("User not found");
+  }
 });
 
 /***************************************
@@ -100,7 +106,28 @@ export const getUserProfile = asynchandler(async (req, res) => {
  ***************************************/
 
 export const updateUserProfile = asynchandler(async (req, res) => {
-  res.status(200).json({ msg: "update user profile" });
+  const user = await User.findById(req.user._id);
+  if (user) {
+    user.name = req.body.name || user.name;
+    user.email = req.body.email || user.email;
+
+    if (req.body.password) {
+      user.password = req.body.password;
+    }
+
+    const updatedUser = await user.save();
+
+    res.status(200).json({
+      // created
+      _id: updatedUser._id,
+      name: updatedUser.name,
+      email: updatedUser.email,
+      isAdmin: updatedUser.isAdmin,
+    });
+  } else {
+    res.status(404);
+    throw new Error("User not found");
+  }
 });
 
 /***************************************
