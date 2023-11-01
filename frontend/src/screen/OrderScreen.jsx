@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { Link, useParams } from "react-router-dom";
 import { Row, Col, ListGroup, Image, Card, Button } from "react-bootstrap";
 
@@ -6,15 +6,62 @@ import Loader from "../components/Loader.jsx";
 import Message from "../components/Message.jsx";
 import { useGetOrderDetailsQuery } from "../slices/ordersApiSlice.js";
 
+import { PayPalButtons, usePayPalScriptReducer } from "@paypal/react-paypal-js";
+import {
+  usePayOrderMutation,
+  useGetPaypalClientIdQuery,
+} from "../slices/ordersApiSlice.js";
+import { toast } from "react-toastify";
+import { useSelector } from "react-redux/es/hooks/useSelector.js";
+
 const OrderScreen = () => {
   const { id: orderId } = useParams();
-  const { data: order, isLoading, error } = useGetOrderDetailsQuery(orderId);
-  console.log(order);
+  const {
+    data: order,
+    isLoading,
+    error: errorPayPal,
+  } = useGetOrderDetailsQuery(orderId);
+
+  const [payOrder, { isLoading: loadingPay }] = usePayOrderMutation();
+
+  const [{ isPending }, paypalDispatch] = usePayPalScriptReducer();
+
+  const { data: paypal, isLoading: loadingPaypal } =
+    useGetPaypalClientIdQuery();
+
+  const { userInfo } = useSelector((state) => state.auth);
+
+  useEffect(() => {
+    if (!errorPayPal && !loadingPaypal && paypal) return;
+
+    const loadPayPalScript = async () => {
+      paypalDispatch({
+        type: "resetOptions",
+        value: {
+          "client-id": paypal.clientId,
+          currency: "USD",
+        },
+      });
+      paypalDispatch({ type: "setLoadingStatus", value: "pending" });
+    };
+    if (order && !order.isPaid) {
+      if (!window.paypal) {
+        loadPayPalScript();
+      }
+    }
+  }, [paypal, paypalDispatch, loadingPaypal, errorPayPal]);
+
+  const onApprove = () => {};
+  const onApproveTest = () => {};
+  const onError = () => {};
+  const createOrder = () => {};
+
+  // *****************  *****************
 
   return isLoading ? (
     <Loader />
-  ) : error ? (
-    <Message variant="danger">{error}</Message>
+  ) : errorPayPal ? (
+    <Message variant="danger">{errorPayPal}</Message>
   ) : (
     <>
       <h1>Order {order._id}</h1>
@@ -120,7 +167,34 @@ const OrderScreen = () => {
                   <Col>${order.totalPrice}</Col>
                 </Row>
               </ListGroup.Item>
-              {/* pay order placehoder */}
+
+              {/* paypal button */}
+              {!order.isPaid && (
+                <ListGroup.Item>
+                  {loadingPay && <Loader />}
+                  {!isPending ? (
+                    <Loader />
+                  ) : (
+                    <div>
+                      <Button
+                        onClick={onApproveTest}
+                        style={{ marginBottom: "10px" }}
+                      >
+                        {" "}
+                        Test Pay Order
+                      </Button>
+                      <div>
+                        <PayPalButtons
+                          createOrder={createOrder}
+                          onApprove={onApprove}
+                          onError={onError}
+                          onCancel={onCancel}
+                        ></PayPalButtons>
+                      </div>
+                    </div>
+                  )}
+                </ListGroup.Item>
+              )}
               {/* mark as delivered placeholder */}
             </ListGroup>
           </Card>
