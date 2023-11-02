@@ -118,7 +118,18 @@ export const updateOrderToPaid = asynchandler(async (req, res) => {
  * ***************************************/
 
 export const updateOrderToDelivered = asynchandler(async (req, res) => {
-  res.send("Update order to delivered");
+  const order = await Order.findById(req.params.id);
+
+  if (!order) {
+    res.status(404);
+    throw new Error("Order not found");
+  }
+
+  order.isDelivered = true;
+  order.deliveredAt = Date.now();
+
+  const updatedOrder = await order.save();
+  res.status(200).json(updatedOrder);
 });
 
 /***************************************
@@ -129,5 +140,7 @@ export const updateOrderToDelivered = asynchandler(async (req, res) => {
  * ***************************************/
 
 export const getOrders = asynchandler(async (req, res) => {
-  res.send("Get all orders  ");
+  const orders = await Order.find({}).populate("user", "id name");
+
+  res.status(200).json(orders);
 });
